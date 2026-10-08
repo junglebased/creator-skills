@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+skills/formula/brands/*.md
+!skills/formula/brands/_template.md
+formula-models/
