@@ -170,7 +170,7 @@ def palette(files, k=5):
     return seen[:k]
 
 
-def build(work, transcribe=True, do_enrich=True, baseline=False):
+def build(work, transcribe=True, do_enrich=True, baseline=False, transcribe_top=0):
     work = Path(work); media = work / "media"
     sheets = work / "sheets"; trans = work / "transcripts"
     sheets.mkdir(exist_ok=True); trans.mkdir(exist_ok=True)
@@ -208,9 +208,12 @@ def build(work, transcribe=True, do_enrich=True, baseline=False):
         if "colors" not in row:
             row["colors"] = palette(files)
         if vids and transcribe and not list(trans.glob(f"{key}*")):
-            to_tx.append((key, vids[0]))
+            to_tx.append((key, vids[0], row.get("likes") or 0))
         rows.append(row)
         log(f"  {key} {row['type']} likes={row.get('likes')} views={row.get('view_count')}")
+    if transcribe_top:  # pareto: only the best-performing videos get transcribed
+        to_tx = sorted(to_tx, key=lambda t: -t[2])[:transcribe_top]
+    to_tx = [(k, v) for k, v, _ in to_tx]
     if to_tx:
         log(f"transcribing {len(to_tx)} videos…")
         # one call = model loads once
@@ -241,7 +244,7 @@ def build(work, transcribe=True, do_enrich=True, baseline=False):
         u = by_user.get(r["user"], [])
         if r.get("likes") and len(u) >= 5:
             r["rel_in_set"] = round(r["likes"] / statistics.median(u), 2)
-    rows.sort(key=lambda r: (r.get("outlier") or r.get("rel_in_set") or 0, r.get("view_count") or 0, r.get("likes") or 0), reverse=True)
+    rows.sort(key=lambda r: (r.get("outlier") or 0, r.get("likes") or 0, r.get("view_count") or 0), reverse=True)  # rel_in_set is shown, not ranked on
     pj.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows))
     shutil.rmtree(work / "sheets" / ".frames", ignore_errors=True)
     log(f"wrote: {pj}  ({len(rows)} posts)")
@@ -267,7 +270,7 @@ def synth(work):
         try: a = json.loads(f.read_text())
         except Exception as e: log("broken json", f.name, e); continue
         a["_m"] = rows.get(a.get("id"), {}); an.append(a)
-    score = lambda a: a["_m"].get("outlier") or a["_m"].get("rel_in_set") or a["_m"].get("likes") or 0
+    score = lambda a: (a["_m"].get("outlier") or 0, a["_m"].get("likes") or 0)
     an.sort(key=score, reverse=True)
     n = len(an); k = max(3, round(n * .3))
     top, low = an[:k], an[-k:]
@@ -307,10 +310,11 @@ if __name__ == "__main__":
     a = sp.add_parser("fetch"); a.add_argument("link"); a.add_argument("work"); a.add_argument("--limit", type=int, default=60)
     b = sp.add_parser("build"); b.add_argument("work"); b.add_argument("--no-transcribe", action="store_true")
     b.add_argument("--no-enrich", action="store_true"); b.add_argument("--baseline", action="store_true")
+    b.add_argument("--transcribe-top", type=int, default=0, help="only transcribe the N most-liked videos")
     c = sp.add_parser("table"); c.add_argument("work"); c.add_argument("--top", type=int, default=40)
     d = sp.add_parser("synth"); d.add_argument("work")
     x = ap.parse_args()
     if x.cmd == "synth": synth(x.work); sys.exit()
     if x.cmd == "fetch": fetch(x.link, x.work, x.limit)
-    elif x.cmd == "build": build(x.work, not x.no_transcribe, not x.no_enrich, x.baseline)
+    elif x.cmd == "build": build(x.work, not x.no_transcribe, not x.no_enrich, x.baseline, x.transcribe_top)
     else: table(x.work, x.top)

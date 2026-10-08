@@ -21,7 +21,7 @@ Three modes. Read the user's message: one link = `analyze`; link + idea = `analy
 ```bash
 F=<this skill dir>/formula.py; W="${FORMULA_HOME:-$HOME/formula-models}/<model-name>"
 python3 $F fetch "<LINK>" "$W" --limit 60    # account: last 60 posts + reels; collection/saved: all
-python3 $F build "$W" [--baseline]           # --deep → --baseline (account-median outlier score, slow)
+python3 $F build "$W" --transcribe-top 25 [--baseline]   # --deep → --baseline (account-median outlier score, slow)
 python3 $F table "$W" --top 40
 ```
 - Already downloaded folder? `ln -s <folder> "$W/media"` instead of fetch.
