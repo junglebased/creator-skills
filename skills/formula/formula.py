@@ -219,7 +219,13 @@ def build(work, transcribe=True, do_enrich=True, baseline=False, transcribe_top=
         # one call = model loads once
         r = sh([shutil.which("uv") or "uv", "run", "--python", "3.12", TRANSCRIBE, *[str(v) for _, v in to_tx],
                 "--mode", "timed", "--out", str(trans)], timeout=7200)
-        if r.returncode: log("  transcription error", r.stderr[-300:])
+        if r.returncode:  # one silent/broken video can sink the whole batch → retry one by one
+            log("  batch transcription failed, retrying per file")
+            for _, v in to_tx:
+                if not any(f.name.startswith(v.stem) for f in trans.iterdir()):
+                    rr = sh([shutil.which("uv") or "uv", "run", "--python", "3.12", TRANSCRIBE, str(v),
+                             "--mode", "timed", "--out", str(trans)], timeout=1800)
+                    if rr.returncode: log("  skip (no speech/audio?):", v.name)
         for key, v in to_tx:
             for f in list(trans.iterdir()):
                 if f.name.startswith(v.stem) and f.name.endswith(".txt"):
