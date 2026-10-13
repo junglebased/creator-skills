@@ -22,6 +22,7 @@ SPEC: `~/code/agentic-os/docs/SPEC-20261013-davinci-suite.md`. Plan first, then 
 | Rough cut | `timeline-from-csv selects.csv --name "R1 v1" [--apply]` (new timeline only) | new timeline |
 | Version record | `snapshot --out "<Film>/03 Post/04 Kurgu" [--apply]` (OTIO + EDL + .drp, timestamped) | files |
 | Render | `render --preset "<preset>" --out "<Content>/04 Export" --file r1_01 [--apply]` | new file |
+| QC (no Resolve needed) | `uv run ~/.claude/skills/resolve/qc.py <file> --target reels\|youtube` → `<file>.qc.md` + safe-zone frames | report only |
 
 `selects.csv`: `clip,in,out,speaker,quote,ring,score,reason` — `in/out` in seconds or source timecode.
 
