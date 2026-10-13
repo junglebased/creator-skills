@@ -7,6 +7,7 @@ Three Claude skills that turn the posts you save into a content system.
 | **`/dl`** | Downloads any link (Instagram reels, carousels, stories, **your saved collections**, TikTok, YouTube, X, Vimeo, Pinterest) into a folder, with the caption next to it. Free, no daily caps, full quality. |
 | **`/formula`** | Give it an account, a saved collection or a list of posts. It downloads everything, **looks at every post** (cover, slides, video frames, transcript, caption, metrics) and writes a **Format DNA** report: hook bank, viral elements with lift scores, design system, caption formula, CTA bank, format templates. Then give it an idea and it makes it **in that format with your brand kit**, designed in Claude Design. |
 | **`/transcribe`** | Free local transcription on Apple Silicon (Whisper large-v3-turbo via MLX). Text, timecoded, SRT/VTT, paper-edit Markdown. |
+| **`/motion`** | Sourced numbers → brand-locked animated 9:16 reel (HyperFrames → MP4) with the RS ripple layer. Draft only; needs a Mac (local render). |
 
 Built by a documentary filmmaker ([@junglebased](https://instagram.com/junglebased)) who got tired of a Telegram bot saying "5 downloads a day".
 

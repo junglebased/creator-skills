@@ -1,0 +1,36 @@
+{
+  "preset": "rs-field-glass",
+  "slug": "20261013-mikro-onarim-ripple-reel",
+  "area_out": "~/Desktop/2 Areas/Regenerative Stories/05 Channels & Social/00 Drafts",
+  "stills_dir": "~/Desktop/2 Areas/Regenerative Stories/01 Films/2026 Mikro Onarım/06 Content/_Görsel Havuzu/Film Kareleri (Master 4K)",
+  "plates": [
+    { "src": "film_0217s_yataklar-drone-burhan.jpg", "x": 1500 },
+    { "src": "film_0487s_sofra-aile.jpg", "x": 1450 },
+    { "src": "film_0103s_kazdaglari-hava.jpg", "x": 1150 }
+  ],
+  "facts": [
+    { "value": "30 m², 4 yatak × 7,5 m²", "scope": "Burhan'ın sebze bahçesi", "date": "2026-10-02", "source": "Burhan Eltan röportajı, A 10:02:22" },
+    { "value": "4–6 kişi", "scope": "bir ailenin sebzesi, tüm gıdası değil (pratisyen gözlemi)", "date": "2026-10-02", "source": "Burhan Eltan röportajı, A 10:02:34" },
+    { "value": "225.349 görüntülenme", "scope": "YouTube, yayından sonraki 15 gün", "date": "2026-10-07", "source": "YouTube herkese açık sayaç (case study)" }
+  ],
+  "scene": {
+    "label": ["Dalga etkisi", "Mikro Onarım"],
+    "hook": { "name": "Burhan Eltan", "place": "Kaz Dağları" },
+    "rings": [
+      { "ring": "Halka 1 · Bahçe",
+        "digits": "30", "unit": "m²",
+        "line": "4 yatak × 7,5 m². Tek bir sebze bahçesi.",
+        "source": "Kaynak: Burhan Eltan röportajı, 2 Eki 2026 (A 10:02:22)" },
+      { "ring": "Halka 2 · Aile",
+        "text": "4–6", "unit": "kişi",
+        "line": "Bir ailenin <em>sebzesi</em>. Tüm gıdası değil.",
+        "attr": "Burhan’ın gözlemi",
+        "source": "Kaynak: Burhan Eltan röportajı, 2 Eki 2026 (A 10:02:34)" },
+      { "ring": "Halka 3 · Film",
+        "digits": "225.349", "unit": "",
+        "line": "kez izlendi. Yayından sonraki 15 günde.",
+        "source": "Kaynak: YouTube herkese açık sayaç, 7 Eki 2026" }
+    ],
+    "end": { "t1": "Mikro Onarım", "t2": "Burhan: Rebuilt from the Ground Up", "t3": "Filmin tamamı YouTube’da", "t4": "Regenerative Stories" }
+  }
+}

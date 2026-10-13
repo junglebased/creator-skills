@@ -21,16 +21,20 @@ First fill: Mikro Onarım (Burhan Eltan), 13 Oct 2026. Draft only; Berkay approv
 
 | File | Role |
 |---|---|
-| `composition/index.html` | HyperFrames composition. Edit only the `SCENE` block per reel. |
+| `composition/index.html` | HyperFrames composition (timeline). Reads `window.SCENE` from `scene.js`; not edited per reel. |
+| `composition/scene.js` | Default scene (Mikro Onarım) for in-place preview; `build.sh` writes the reel's own in a scratch copy. |
 | `composition/tokens.css` | Brand + layout tokens (palette, type sizes, card, safe zone). Fonts load from `assets/fonts/`. |
-| `build.sh` | Copies licensed fonts from the RS brand kit, crops 9:16 plates from 4K film stills (`PLATES` list), renders, exports 0 s / 8 s / last frame PNGs. |
-| `composition/assets/` | Fonts and plates, gitignored (licensed fonts, own footage). Rebuilt by `build.sh`. |
+| `build.sh` | `build.sh <reel.json> [out_dir]`: scratch copy of `composition/`, licensed fonts from the RS brand kit, 9:16 plates from the reel's 4K stills, render, 0 s / 8 s / last frame PNGs. Never overwrites (`-v2`…). |
+| `../../reels/*.json` | One reel = one JSON (scene text, plates, `facts[]` with sources). |
+| `composition/assets/` | Fonts and plates, gitignored (licensed fonts, own footage). Only for in-place `check`; `build.sh` fills its scratch copy. |
 
 ## Run
 
 ```bash
-cd templates/rs-field-glass && ./build.sh "$HOME/Desktop/2 Areas/Regenerative Stories/05 Channels & Social/00 Drafts"
+~/.claude/skills/motion/templates/rs-field-glass/build.sh ~/.claude/skills/motion/reels/20261013-mikro-onarim.json
 ```
+
+Output defaults to the reel's `area_out` (RS: `05 Channels & Social/00 Drafts`). Invoked via the `/motion` skill (`../../SKILL.md`).
 
 Needs Node, ffmpeg, Chrome and local port binding (the renderer serves the page on 127.0.0.1).
 `HF=/path/to/hyperframes ./build.sh` uses a local CLI install instead of `npx hyperframes@0.8.150`.
