@@ -1,0 +1,50 @@
+/* rs-field-glass · design + motion tokens (RS brand kit, 06-brand-voice §9)
+   Colours, type and timing for every RS motion piece built on this preset.
+   Change values here, never inline in a composition. */
+
+@font-face { font-family: "Clash Display"; src: url("assets/fonts/ClashDisplay-Medium.otf") format("opentype"); font-weight: 500; }
+@font-face { font-family: "Clash Display"; src: url("assets/fonts/ClashDisplay-Semibold.otf") format("opentype"); font-weight: 600; }
+@font-face { font-family: "Satoshi"; src: url("assets/fonts/Satoshi-Regular.otf") format("opentype"); font-weight: 400; }
+@font-face { font-family: "Satoshi"; src: url("assets/fonts/Satoshi-Bold.otf") format("opentype"); font-weight: 700; }
+@font-face { font-family: "Boska"; src: url("assets/fonts/Boska-MediumItalic.otf") format("opentype"); font-weight: 500; font-style: italic; }
+@font-face { font-family: "Boska"; src: url("assets/fonts/Boska-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; }
+
+:root {
+  /* palette: humus + mist neutrals, sprout primary, gold for ONE word only */
+  --humus: #181715;
+  --humus-rgb: 24, 23, 21;
+  --mist: #F3F1EB;
+  --mist-rgb: 243, 241, 235;
+  --sprout-500: #4A7A2E;
+  --sprout-400: #6FA34D;
+  --clay: #CC7A59;
+  --gold: #F6BF26;
+
+  /* type */
+  --font-number: "Clash Display", "Satoshi", sans-serif;
+  --font-body: "Satoshi", sans-serif;
+  --font-quote: "Boska", Georgia, serif;
+  --size-number: 200px;   /* key number, QA floor 120px */
+  --size-line: 46px;
+  --size-label: 26px;
+  --size-source: 24px;
+  --tracking-label: 0.22em;
+
+  /* field-glass card */
+  --card-bg: rgba(var(--humus-rgb), 0.62);
+  --card-border: rgba(var(--mist-rgb), 0.14);
+  --card-blur: 18px;
+  --card-radius: 28px;
+
+  /* 9:16 safe zone (IG reel UI): text stays inside y 220-1520, 64px side margins */
+  --safe-top: 220px;
+  --safe-bottom: 1520px;
+  --safe-side: 64px;
+}
+
+/* Motion tokens live in JS (GSAP reads numbers, not CSS vars):
+   MOTION.springSoft = "back.out(1.15)"   low-bounce settle (damping ~0.8)
+   MOTION.ease       = "power3.out"       entrances
+   MOTION.draw       = "power2.inOut"     stroke draw-on
+   MOTION.holdMin    = 1.2                seconds an after-state must hold
+   MOTION.fall       = "bounce.out"       never used: too playful for RS; seeds use back.out */

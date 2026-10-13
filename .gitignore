@@ -8,3 +8,9 @@ formula-models/
 
 # research media (reference only, never committed)
 research/20261012-ig-DeZYQm2iPvw/
+
+# motion templates: fonts (licensed) and footage plates are copied in by build.sh, never committed
+templates/*/composition/assets/fonts/
+templates/*/composition/assets/plates/
+templates/*/composition/renders/
+templates/*/composition/node_modules/
