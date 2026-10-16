@@ -217,27 +217,70 @@ def cmd_scan(a):
             if added % 50 == 0:
                 print(f'{label}: {added}', flush=True)
                 save(ix, rows)
-    dedupe(rows)
+    dedupe(rows, ix)
     save(ix, rows)
     print(f'scan: +{added}, total {len(rows)}')
 
 
-def dedupe(rows, thr=6):
-    """Group near-duplicates (bursts, same scene) by dHash; group id = first member id."""
-    groups = []
-    for r in rows:
-        if not r.get('dhash'):
-            continue
-        for g in groups:
-            if hamming(r['dhash'], g[0]['dhash']) <= thr:
-                g.append(r)
+def timeline_sec(r):
+    """Seconds on a film timeline: video frames of the master, or stills exported as film_<sec>*.jpg."""
+    if r.get('kind') == 'video_frame' and r.get('timecode') and r.get('source_label') == 'master-film':
+        h, m, s = r['timecode'].split(':')
+        return int(h) * 3600 + int(m) * 60 + float(s)
+    m = re.match(r'^film_(\d+)', os.path.basename(r.get('source_path', '')), re.I)
+    return float(m.group(1)) if m else None
+
+
+def dedupe(rows, ix=None, thr=8, window=4, colour_thr=42):
+    """Group near-duplicates: dHash distance <= thr (bursts, repeated frames) OR the same moment of the
+    film timeline within `window` s (a still exported from the master and a scene grab of the same shot
+    hash differently when the subject moves). Group id = first member id."""
+    parent = {r['id']: r['id'] for r in rows}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[max(ra, rb)] = min(ra, rb)
+
+    hashed = [r for r in rows if r.get('dhash')]
+    for i, r in enumerate(hashed):
+        for q in hashed[:i]:
+            if hamming(r['dhash'], q['dhash']) <= thr:
+                union(r['id'], q['id'])
+    # timeline: link each exported still to master frames of the same moment (never frame-to-frame,
+    # scene grabs a few seconds apart are different shots and would chain the whole film together)
+    frames = [(t, r['id']) for r in rows if r.get('kind') == 'video_frame' and (t := timeline_sec(r)) is not None]
+    stills = [(t, r['id']) for r in rows if r.get('kind') == 'photo' and (t := timeline_sec(r)) is not None]
+    thumbs = {r['id']: r.get('thumb', '') for r in rows}
+
+    def colour_dist(a, b):  # 8x8 RGB grid mean abs diff; survives small motion, rejects other shots
+        try:
+            A, B = (list(Image.open(os.path.join(ix, thumbs[x])).convert('RGB').resize((8, 8), Image.BOX)
+                         .get_flattened_data()) for x in (a, b))
+        except Exception:
+            return 999
+        flat = lambda L: [c for px in L for c in (px if isinstance(px, tuple) else (px,))]
+        A, B = flat(A), flat(B)
+        return sum(abs(x - y) for x, y in zip(A, B)) / len(A)
+
+    for t, a in stills:  # nearest neighbour only, else stills a few seconds apart chain together
+        near = sorted((abs(t2 - t), b) for t2, b in frames + stills if b != a and abs(t2 - t) <= window)
+        for _, b in near[:2]:
+            if ix and colour_dist(a, b) <= colour_thr:
+                union(a, b)
                 break
-        else:
-            groups.append([r])
-    for g in groups:
-        gid = g[0]['id'] if len(g) > 1 else ''
-        for r in g:
-            r['dup_group'] = gid
+    size = {}
+    for r in rows:
+        size[find(r['id'])] = size.get(find(r['id']), 0) + 1
+    for r in rows:
+        g = find(r['id'])
+        r['dup_group'] = g if size[g] > 1 else ''
 
 
 # ---------- scenes ----------
@@ -327,7 +370,7 @@ def cmd_scenes(a):
                 break
         if added >= a.max:
             break
-    dedupe(rows)
+    dedupe(rows, ix)
     save(ix, rows)
     print(f'scenes {a.label}: {len(bounds)} scenes, +{added} frames')
 
@@ -373,7 +416,7 @@ def cmd_sheets(a):
             lab = r['id'] + ('  ' + r['orientation'][0].upper())
             d.text((x + 6, y + ch + 2), lab, fill='black', font=fnt)
         name = (f'{a.name}_{i // per + 1:02d}.jpg' if a.name else
-                f'sheet_{i // per + 1:03d}_{chunk[0]["id"]}_{chunk[-1]["id"]}.jpg')
+                f'sheet_{chunk[0]["id"]}_{chunk[-1]["id"]}.jpg')
         sheet.save(os.path.join(sd, name), quality=85)
         out.append(name)
     print(f'{len(out)} sheets -> {sd}')
