@@ -61,8 +61,8 @@ Caveat honestly in the report: sample size, mixed accounts, missing view counts.
 
 1. **Pick the model:** given, or the latest / best match via each model's idea → format map. Several models → merge their strongest rules.
 2. **Brand:** read `brands/<code>.md`. Missing fields → ask once, in one message. Never invent facts, numbers, dates or quotes about the brand or its people; leave `[SOURCE?]` / `[YEAR?]`.
-3. **Brief:** format code, hook (template from the bank + 3 variants), beat-by-beat flow, per slide/scene: text + visual note (real asset path if one exists), CTA (brand's CTA for this content pillar), caption, hashtags. Run the copy through an anti-AI-writing pass if one is available.
-4. **Claude Design:** use the Artifact tool — `action: "quickstart"` with intent `design` (single visual / carousel / reel storyboard) or `slides` (multi-slide carousel). Pass the brand tokens (colors, fonts, logo), the model's Claude Design brief and the slide copy. 4:5 carousel (1080×1350), 9:16 reel cover/storyboard (1080×1920).
+3. **Brief:** format code, hook (template from the bank + 3 variants), beat-by-beat flow, per slide/scene: text + visual per slide chosen with `/visual-index` (`select` with the slot's topic tags + ratio; picks sheet shown before design; ledger written after approval). No index for the production yet → run `/visual-index` first. Slide text with manual, balanced line breaks (R1: headline ≤3 lines, body ≤3; characters per line from the brand kit's `chars_per_line`). CTA (brand's CTA for this content pillar), caption, hashtags. Run the copy through an anti-AI-writing pass if one is available.
+4. **Claude Design:** use the Artifact tool — `action: "quickstart"` with intent `design` (single visual / carousel / reel storyboard) or `slides` (multi-slide carousel). Pass the brand tokens (colors, fonts, logo), the model's Claude Design brief and the slide copy. 4:5 carousel (1080×1350), 9:16 reel cover/storyboard (1080×1920). Deliver the carousel as ONE canvas: one editable artboard per slide + a full-page `Swipe.dc.html` (dc-import, scroll-snap, ‹ › buttons, dots); share link with `launch=focused` (R2). All frames go through the piece's single `.cube` before placing (R3, `visual-index grade`).
 5. **Deliver:** artifact link + `<model>/made/<date>_<slug>.md` (brief, caption, sources, `Reference format: F# — <link>`).
 6. **Feedback loop:** when the user reports results, append to `$FORMULA_HOME/_performance.csv` (date, brand, format, hook type, metrics). Future `make` runs weigh it.
 
@@ -77,4 +77,5 @@ Scan every model in `$FORMULA_HOME` → `LIBRARY.md`: model list, cross-model ru
 - References are for analysis. Never suggest reposting or copying text/visuals verbatim; hooks are abstracted into templates.
 - Metrics come from data; missing → "no data". Hidden-like posts are flagged, not ranked.
 - Pareto: deep-analyse at most 25 posts per model; the rest count only through captions + metrics.
+- CF production rules R1–R3 apply to every `make` output: `docs/CF-PRODUCTION-RULES.md`.
 - Rate limit (HTTP 429) → stop, resume in ~15 min. The browser session is the user's: never log out or change anything there.

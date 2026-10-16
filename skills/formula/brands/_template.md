@@ -28,6 +28,8 @@
 | body | | |
 | accent / meta | | |
 
+- `chars_per_line:` headline font+size → N chars, body font+size → N chars (1080 px slide, 72 px margins; rule R1 in docs/CF-PRODUCTION-RULES.md). Example: serif 76 px ≈ 22–24 · sans 44 px ≈ 38–40.
+
 ## Visual rules
 - Logo / handle badge:
 - Photo style (and what's banned, e.g. stock, AI images):
