@@ -244,8 +244,10 @@ def main():
                 R.add('WARN', f'S{s.get("n")} brand/risk', f'{v}: {r.get("notes", "")[:80]}')
             base = lambda u: u.split(' (')[0].strip()  # "2026-10 E1 OMB (taslak)" -> "2026-10 E1 OMB"
             other = [u for u in r.get('used_in', '').split(';') if u.strip() and base(u) != base(camp)]
-            if other:
-                R.add('FAIL', f'S{s.get("n")} repeat', f'{v} already used in: {"; ".join(other)}')
+            if other:  # a repeat the user approved (note "approved by …" in the index) is only a WARN
+                ok = re.search(r'approved by|onaylı', r.get('notes', ''), re.I)
+                R.add('WARN' if ok else 'FAIL', f'S{s.get("n")} repeat',
+                      f'{v} already used in: {"; ".join(other)}' + (' (approved repeat)' if ok else ''))
             g = r.get('dup_group') or v
             if g in groups:
                 R.add('FAIL', f'S{s.get("n")} same shot', f'{v} same dup_group as S{groups[g]}')
