@@ -66,7 +66,9 @@ def main():
              f'- İlk DM: {dm.group(1).strip() if dm else "[DM?]"}', '',
              '## Slayt sırası']
     for s in data.get('slides', []):
-        head = ' / '.join(s.get('headline') or [])
+        hv = s.get('headline') or []
+        head = ' / '.join(x.strip() for ln in ([hv] if isinstance(hv, str) else hv)
+                          for x in re.split(r'<br\s*/?>|\n', str(ln), flags=re.I) if x.strip())
         lines.append(f'{s.get("n")}. {s.get("role", "")} · {s.get("visual", "")} · {head}')
     lines += ['', '## Kontrol listesi (yayından hemen önce)',
               '- [ ] QA 0 FAIL; WARN\'lar okundu',

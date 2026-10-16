@@ -54,6 +54,14 @@ def brand_limits(path):
     return out
 
 
+def lines_of(slide, part):
+    """Slide text as lines; manual breaks may be list items, <br>, <br/> or \\n."""
+    v = slide.get(part) or []
+    if isinstance(v, str):
+        v = [v]
+    return [x.strip() for ln in v for x in re.split(r'<br\s*/?>|\n', str(ln), flags=re.I) if x.strip()]
+
+
 class Report:
     def __init__(self):
         self.rows = []
@@ -111,8 +119,10 @@ def main():
         for part, lim in (('headline', ch_h), ('body', ch_b)):
             lines = s.get(part) or []
             if isinstance(lines, str):
-                R.add('FAIL', f'S{n} {part}', 'string, not a list of lines: line breaks must be manual (R1)')
-                lines = lines.split('\n')
+                if not re.search(r'<br\s*/?>|\n', lines, re.I) and len(lines) > (ch_h if part == 'headline' else ch_b):
+                    R.add('FAIL', f'S{n} {part}', 'one long string without breaks: line breaks must be manual (R1)')
+                lines = [lines]
+            lines = lines_of(s, part)
             maxl = a.max_lines + (1 if part == 'headline' else 0)
             if len(lines) > maxl:
                 R.add('FAIL', f'S{n} {part} lines', f'{len(lines)} > {maxl}')
@@ -141,7 +151,7 @@ def main():
                     R.add('FAIL', f'S{n} open placeholder', ln)
                 if emoji_count(ln):
                     R.add('WARN', f'S{n} emoji on slide', ln)
-        if re.search(r'\d', ' '.join((s.get('headline') or []) + (s.get('body') or []))) and not s.get('sources') \
+        if re.search(r'\d', ' '.join(lines_of(s, 'headline') + lines_of(s, 'body'))) and not s.get('sources') \
                 and s.get('role') not in ('cta',):
             R.add('FAIL', f'S{n} number without source', 'every number/quote on a slide needs a sources id')
 
@@ -160,7 +170,7 @@ def main():
         R.add('FAIL', 'caption', 'no <code>.caption.md')
     cta_slides = [s for s in slides if s.get('role') == 'cta']
     if kw:
-        on_slide = any(kw in ' '.join((s.get('headline') or []) + (s.get('body') or [])) for s in cta_slides)
+        on_slide = any(kw in ' '.join(lines_of(s, 'headline') + lines_of(s, 'body')) for s in cta_slides)
         R.add('PASS' if on_slide else 'FAIL', 'CTA keyword on CTA slide', kw)
         R.add('PASS' if re.search(rf'\b{re.escape(kw)}\b', caption) else 'FAIL', 'CTA keyword in caption', kw)
         trig = re.search(r'manychat_trigger:\s*(\S+)', caption)
