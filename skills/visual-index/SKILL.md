@@ -15,6 +15,9 @@ shared by all indexes, so a frame used in a client deck is also "used" for the b
 
 Pipeline position (Content Factory): `brief → source-gate → **visual-index → visual-select** → copy → design → caption/CTA → QA → publish-pack`.
 
+Shared production rules for all CF steps (line breaks R1, one Design canvas R2, series look R3):
+`docs/CF-PRODUCTION-RULES.md` in this repo.
+
 ## Hard rules
 1. **Source media is read-only.** Never move, rename, re-encode in place or delete originals. Premiere/Resolve
    project folders and camera cards are read-only. The script only opens sources as input.
@@ -136,7 +139,7 @@ or the design step) and **write the ledger**:
 python3 $V "$IX" use MO-0123 MO-0456 --in "2026-10 E1 OMB carousel"
 ```
 
-## Step 4b · Series look (one grade for the whole piece)
+## Step 4b · Series look (one grade for the whole piece) · rule R3 in `docs/CF-PRODUCTION-RULES.md`
 All frames of one carousel/reel (photos, video frames, film stills) pass through **one series look**: the same
 `.cube`, white-balance target, contrast and saturation. Mixed sources without it look like a collage
 (e.g. an ungraded pale tomato next to a graded film still).

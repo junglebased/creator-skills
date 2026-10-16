@@ -33,7 +33,7 @@ list in the index folder's `topics.md`; the generic ones below always apply).
 | crop_fit | ratios where the SUBJECT survives a centred or shifted crop: `9:16` · `4:5` · `1:1` · `16:9` |
 | text_safe | where clean negative space for a headline sits: `top` · `bottom` · `left` · `right` · `center` · `none` |
 | people | `burhan`, `burhan+family`, `participants:N`, `unknown:N`, `none`; name known people only if visible context makes it certain |
-| consent | `ok` (consented protagonist, crowd from behind, no faces) · `check` (identifiable third party, children) · `no` (known refusal list) |
+| consent | `ok` (consented protagonist, crowd from behind, no faces) · `check` (identifiable third party, children) · `no` (known refusal list, or anything that can backfire: cigarettes/alcohol, third-party brands or logos, plates, screens with private data) |
 | notes | defects (soft focus, blur, overexposed, text/logo in frame, watermark, duplicate of X) or a strong use idea |
 
 ## Quality rubric (cinematic, for social stills)
