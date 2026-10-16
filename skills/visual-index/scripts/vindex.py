@@ -13,6 +13,9 @@ script writes goes under the index folder (and, with --import-to, JPG copies int
   vindex.py INDEX use      ID [ID ...] --in "PROJECT / slot"
   vindex.py INDEX prefill  --content-root DIR   (ledger from pieces already made)
   vindex.py INDEX sheets   --only all --ids MO-1,MO-2 --name picks_E1   (picks sheet)
+  vindex.py INDEX init     --prefix MO [--production] [--brand] [--formats 4:5,9:16] [--global-ledger CSV] [--look CUBE]
+  vindex.py INDEX scenes-dir FOLDER --label L [--skip GLOB ...]
+  vindex.py INDEX grade    ID [ID ...] --lut LOOK.cube [--pre-lut ID=LOG.cube] --out DIR
   vindex.py INDEX report
 
 Commands rewrite index.csv: run them one at a time per index (no parallel scan + merge).
@@ -59,11 +62,30 @@ def save(ix, rows):
     os.replace(tmp, p)
 
 
-def prefix(ix):
+def config(ix):
     cfg = os.path.join(ix, 'config.json')
-    if os.path.exists(cfg):
-        return json.load(open(cfg)).get('prefix', 'VX')
-    return 'VX'
+    return json.load(open(cfg, encoding='utf-8')) if os.path.exists(cfg) else {}
+
+
+def prefix(ix):
+    return config(ix).get('prefix', 'VX')
+
+
+def global_ledger(ix):
+    """Cross-project ledger: same image used by another production/brand counts as used."""
+    p = config(ix).get('global_ledger') or os.environ.get('VINDEX_GLOBAL_LEDGER', '')
+    return os.path.expanduser(p) if p else ''
+
+
+def global_uses(ix):
+    p = global_ledger(ix)
+    out = {}
+    if p and os.path.exists(p):
+        me = config(ix).get('production', '')
+        for r in csv.DictReader(open(p, newline='', encoding='utf-8')):
+            if r.get('production') != me:
+                out.setdefault(r['source_path'], []).append(f"{r['production']}: {r['used_in']}")
+    return out
 
 
 def next_id(rows, pre):
@@ -401,7 +423,7 @@ def cmd_select(a):
     rows = load(ix)
     want = set(x for x in (a.tags or '').split(',') if x)
     anyt = set(x for x in (a.any or '').split(',') if x)
-    used_proj = set()
+    other = global_uses(ix)
     cands = []
     for r in rows:
         if not r.get('shot_type'):
@@ -413,6 +435,8 @@ def cmd_select(a):
         if a.ring and a.ring not in r.get('ripple_ring', ''):
             continue
         uses = [u for u in r.get('used_in', '').split(';') if u.strip()]
+        if r['kind'] == 'photo':
+            uses += other.get(r['source_path'], [])
         if uses and not a.allow_used:
             continue
         sc = score(r, want, anyt, a.ratio)
@@ -453,6 +477,7 @@ def cmd_use(a):
     by = {r['id']: r for r in rows}
     led = os.path.join(ix, 'ledger.csv')
     new = not os.path.exists(led)
+    glob_rows = []
     with open(led, 'a', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
         if new:
@@ -467,8 +492,117 @@ def cmd_use(a):
                 uses.append(a.used_in)
             r['used_in'] = ';'.join(uses)
             w.writerow([datetime.now().strftime('%Y-%m-%d'), i, a.used_in, r['pool_path']])
+            glob_rows.append(r)
+    gp = global_ledger(ix)
+    if gp and glob_rows:
+        os.makedirs(os.path.dirname(gp), exist_ok=True)
+        cfg = config(ix)
+        gnew = not os.path.exists(gp)
+        with open(gp, 'a', newline='', encoding='utf-8') as f:
+            w = csv.writer(f)
+            if gnew:
+                w.writerow(['date', 'production', 'brand', 'id', 'used_in', 'source_path', 'timecode'])
+            for r in glob_rows:
+                w.writerow([datetime.now().strftime('%Y-%m-%d'), cfg.get('production', ''), cfg.get('brand', ''),
+                            r['id'], a.used_in, r['source_path'], r['timecode']])
     save(ix, rows)
     print(f'ledger: {len(a.ids)} ids -> {a.used_in}')
+
+
+# ---------- init ----------
+TOPICS_TEMPLATE = """# Topic tags · {production}
+
+Use with the generic tags in the visual-index skill (`references/tagging-vocab.md`).
+
+**No-go (consent: no, never selected):** <people / files / licence-unclear media>
+
+| tag | what is in frame |
+|---|---|
+| `example-tag` | describe what a frame must show to get this tag |
+"""
+
+
+def cmd_init(a):
+    ix = a.index
+    for d in ('thumbs', 'frames', 'sheets', 'tags'):
+        os.makedirs(os.path.join(ix, d), exist_ok=True)
+    cfgp = os.path.join(ix, 'config.json')
+    cfg = config(ix)
+    cfg.update({k: v for k, v in dict(prefix=a.prefix, production=a.production, brand=a.brand,
+                                       formats=a.formats.split(',') if a.formats else None,
+                                       global_ledger=a.global_ledger, look=a.look).items() if v})
+    json.dump(cfg, open(cfgp, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+    tp = os.path.join(ix, 'topics.md')
+    if not os.path.exists(tp):
+        open(tp, 'w', encoding='utf-8').write(TOPICS_TEMPLATE.format(production=a.production or ix))
+    print(json.dumps(cfg, ensure_ascii=False))
+
+
+# ---------- scenes for a whole folder of clips ----------
+def cmd_scenes_dir(a):
+    import fnmatch
+    vids = []
+    for root, dirs, fs in os.walk(a.folder):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for f in sorted(fs):
+            if os.path.splitext(f)[1].lower() in VID and not f.startswith('.') \
+                    and not any(fnmatch.fnmatch(f, pat) for pat in (a.skip or [])):
+                vids.append(os.path.join(root, f))
+    for v in vids:
+        b = argparse.Namespace(**vars(a))
+        b.video = v
+        b.label = f'{a.label}-{os.path.splitext(os.path.basename(v))[0]}'
+        cmd_scenes(b)
+
+
+# ---------- series look (grade) + compare grid ----------
+def cmd_grade(a):
+    """Apply ONE look to every pick of a piece: optional log->709 pre-LUT per id, then the series .cube.
+    Writes graded JPGs (and a side-by-side before/after grid) to --out. Sources untouched."""
+    ix = a.index
+    by = {r['id']: r for r in load(ix)}
+    look = a.lut or config(ix).get('look', '')
+    if not look or not os.path.exists(os.path.expanduser(look)):
+        sys.exit('no series look: pass --lut <file.cube> or set "look" in config.json')
+    look = os.path.expanduser(look)
+    pre = dict(x.split('=', 1) for x in (a.pre_lut or []))  # id=log-to-709.cube
+    os.makedirs(a.out, exist_ok=True)
+    pairs = []
+    for i in a.ids:
+        r = by.get(i)
+        if not r:
+            print('unknown', i, file=sys.stderr)
+            continue
+        src = r['pool_path']
+        vf = []
+        if i in pre:
+            vf.append(f"lut3d=file='{os.path.expanduser(pre[i])}'")
+        vf.append(f"lut3d=file='{look}'")
+        dst = os.path.join(a.out, f'{i}_graded.jpg')
+        n = 1
+        while os.path.exists(dst):  # never overwrite
+            n += 1
+            dst = os.path.join(a.out, f'{i}_graded-v{n}.jpg')
+        subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', src, '-vf', ','.join(vf), '-q:v', '2', dst],
+                       stdin=subprocess.DEVNULL)
+        if os.path.exists(dst):
+            pairs.append((i, src, dst))
+    # compare grid: before row / after row, one column per pick, in slot order
+    if pairs:
+        cw, ch = 360, 450
+        g = Image.new('RGB', (cw * len(pairs), ch * 2 + 40), 'white')
+        d = ImageDraw.Draw(g)
+        fnt = font(20)
+        for k, (i, src, dst) in enumerate(pairs):
+            for row, p in enumerate((src, dst)):
+                t = ImageOps.exif_transpose(Image.open(p)).convert('RGB')
+                t = ImageOps.fit(t, (cw - 6, ch - 6))
+                g.paste(t, (k * cw + 3, row * ch + 3))
+            d.text((k * cw + 6, ch * 2 + 8), i, fill='black', font=fnt)
+        gp = os.path.join(a.out, f'compare_{datetime.now().strftime("%Y%m%d-%H%M")}.jpg')
+        g.save(gp, quality=88)
+        print('compare grid:', gp)
+    print(f'graded {len(pairs)} -> {a.out}')
 
 
 # ---------- prefill ledger from content already made ----------
@@ -558,11 +692,23 @@ def main():
     s = sp.add_parser('use'); s.add_argument('ids', nargs='+'); s.add_argument('--in', dest='used_in', required=True)
     s = sp.add_parser('prefill'); s.add_argument('--content-root', required=True)
     s.add_argument('--master-label', default='master-film')
+    s = sp.add_parser('init'); s.add_argument('--prefix', required=True); s.add_argument('--production')
+    s.add_argument('--brand'); s.add_argument('--formats', help='e.g. 4:5,9:16')
+    s.add_argument('--global-ledger'); s.add_argument('--look', help='default series .cube')
+    s = sp.add_parser('scenes-dir'); s.add_argument('folder'); s.add_argument('--label', required=True)
+    s.add_argument('--skip', action='append', help='glob, repeatable (interviews, no-go clips)')
+    s.add_argument('--thresh', type=float, default=0.22); s.add_argument('--every', type=float, default=20)
+    s.add_argument('--min-len', type=float, default=1.0); s.add_argument('--max', type=int, default=6)
+    s.add_argument('--long-edge', type=int, default=2400); s.add_argument('--log')
+    s = sp.add_parser('grade'); s.add_argument('ids', nargs='+'); s.add_argument('--lut')
+    s.add_argument('--pre-lut', action='append', help='ID=log_to_709.cube, repeatable')
+    s.add_argument('--out', required=True)
     sp.add_parser('report')
     a = p.parse_args()
     os.makedirs(a.index, exist_ok=True)
-    {'scan': cmd_scan, 'scenes': cmd_scenes, 'sheets': cmd_sheets, 'merge': cmd_merge,
-     'select': cmd_select, 'use': cmd_use, 'prefill': cmd_prefill, 'report': cmd_report}[a.cmd](a)
+    {'scan': cmd_scan, 'scenes': cmd_scenes, 'scenes-dir': cmd_scenes_dir, 'sheets': cmd_sheets,
+     'merge': cmd_merge, 'select': cmd_select, 'use': cmd_use, 'prefill': cmd_prefill, 'init': cmd_init,
+     'grade': cmd_grade, 'report': cmd_report}[a.cmd](a)
 
 
 if __name__ == '__main__':

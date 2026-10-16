@@ -1,6 +1,6 @@
 ---
 name: visual-index
-description: Index ALL visual material of a production (photos + frame grabs cut from videos at scene changes) into one searchable pool, tag every still (shot type, subject, topic, ripple ring, emotion, light, cinematic quality 1–5, crop fit, text-safe area), then pick visuals for a carousel/reel/cover by topic fit with no-repeat + diversity rules and a used-in ledger. Use BEFORE producing any content from a film or shoot, and whenever the user says "/visual-index", "görsel havuz", "görsel indeksle", "kare çıkar", "frame grab", "hangi görseli kullanayım", "aynı görseller tekrar ediyor", "görsel seç", "contact sheet", or hands over a production folder and asks for visuals for a post.
+description: Brand- and project-agnostic visual pool for any content (films, client work, brand posts, LinkedIn, decks). Index ALL visual material of a production (photos + frame grabs cut from videos at scene changes, on the Mac, external disks or a synced Drive folder) into one searchable pool, tag every still (shot type, subject, topic, ripple ring, emotion, light, cinematic quality 1–5, crop fit, text-safe area), then pick visuals for a carousel/reel/cover by topic fit with no-repeat + diversity rules and a used-in ledger. Use BEFORE producing any content from a film or shoot, and whenever the user says "/visual-index", "görsel havuz", "görsel indeksle", "kare çıkar", "frame grab", "hangi görseli kullanayım", "aynı görseller tekrar ediyor", "görsel seç", "contact sheet", or hands over a production folder and asks for visuals for a post.
 ---
 
 # visual-index
@@ -8,6 +8,10 @@ description: Index ALL visual material of a production (photos + frame grabs cut
 Principle (Berkay, 16 Oct 2026): **index everything first, then choose.** No content is produced from a
 handful of familiar shots. Every quality cinematic image is seen once, scored, tagged by topic, and
 every use is written to a ledger so the same frame does not carry five posts.
+
+Works for any brand and any production: one index per production (a film, a client shoot, a brand
+library), parameters = project root, sources, brand, target formats. One **cross-project ledger** is
+shared by all indexes, so a frame used in a client deck is also "used" for the brand's own posts.
 
 Pipeline position (Content Factory): `brief → source-gate → **visual-index → visual-select** → copy → design → caption/CTA → QA → publish-pack`.
 
@@ -45,6 +49,15 @@ date, camera, brightness, sharpness, dhash, dup_group` (automatic) ·
 `shot_type, subject, action, topic_tags, ripple_ring, emotion, light, quality, crop_fit, text_safe, people,
 consent, notes` (vision pass, vocabulary in `references/tagging-vocab.md`) · `used_in` (ledger, `;`-separated).
 
+## Step 0 · Init (once per production)
+```bash
+python3 $V "<pool>/_Visual Index" init --prefix MO --production "Mikro Onarım" --brand rs \
+  --formats 4:5,9:16 --global-ledger "<content-factory>/Visual Ledger/used-in.csv" [--look series.cube]
+```
+Creates `config.json`, folders and a `topics.md` template. Fill `topics.md` (what each topic must show + the
+no-go list) before tagging. Prefix = short code per production (MO, SF, DC01…); ids stay stable forever.
+The global ledger path is the same for every production of the user.
+
 ## Step 1 · Inventory (5 min, before anything else)
 List every place the production's visuals live and write it into the audit: pool folders, existing contact
 sheets/indexes (improve them, don't replace), master film export, interview + b-roll clips, external disks
@@ -61,8 +74,9 @@ python3 $V "$IX" scan --src "macro-2026=<pool>/2026-10-02 Makro Bahçe" --src "a
 python3 $V "$IX" scan --import-to "<pool>/Archive 2024 Workshop" --src "workshop-fuji=/Volumes/SSD/.../Photos - Fuji"
 # master film: scene detection + best-of-3 sharpness pick per scene, extra pick every 8 s in long scenes
 python3 $V "$IX" scenes "<master>.mp4" --label master-film --thresh 0.22 --every 8
-# b-roll clips: fewer frames per clip
+# b-roll clips: fewer frames per clip (one clip, or a whole card/folder with skips)
 python3 $V "$IX" scenes "<clip>.MP4" --label broll-<name> --every 20 --max 6
+python3 $V "$IX" scenes-dir "/Volumes/SSD/<shoot>/DJIOSMO3" --label broll-2026 --skip "*0294*" --skip "*0302*"
 ```
 - Scene threshold 0.22 suits edited films with dissolves; raw single-take clips: rely on `--every`.
 - Skip interview A-roll (one static frame) except 1–2 portrait grabs; skip no-go clips.
@@ -121,6 +135,20 @@ or the design step) and **write the ledger**:
 ```bash
 python3 $V "$IX" use MO-0123 MO-0456 --in "2026-10 E1 OMB carousel"
 ```
+
+## Step 4b · Series look (one grade for the whole piece)
+All frames of one carousel/reel (photos, video frames, film stills) pass through **one series look**: the same
+`.cube`, white-balance target, contrast and saturation. Mixed sources without it look like a collage
+(e.g. an ungraded pale tomato next to a graded film still).
+1. Log sources (Fuji F-Log2, S-Log, D-Log) first get their technical conversion LUT (`--pre-lut ID=...`),
+   Rec709 sources (film masters, JPGs) do not. Never put a log LUT on a Rec709 image.
+2. Then the series look (`--lut look.cube`, or `look` in config.json). The look belongs to the piece or
+   campaign; save it next to the piece (`03 Tasarım/look/<campaign>.cube`) and reuse it for every slide and
+   the video slot (Resolve/ffmpeg use the same file).
+3. `vindex.py "$IX" grade <ids in slot order> --lut <look.cube> [--pre-lut MO-0042=flog2_to_709.cube] --out "<piece>/01 Kaynak Görsel/graded"`
+   writes graded JPGs (never overwrites) and `compare_<time>.jpg`: before row / after row, side by side.
+4. Check the compare grid before design: skin tones, greens, blacks consistent across all slides; one outlier
+   = adjust that frame's exposure/WB first, not the look.
 
 ## Step 5 · Audit report (what to send the user)
 Short, in their language: counts per source; coverage per topic (q3+/q4+); gaps (topics with 0–2 good frames);
