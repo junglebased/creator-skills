@@ -11,6 +11,11 @@ Four Claude skills that turn the posts you save into a content system.
 
 Built by a documentary filmmaker ([@junglebased](https://instagram.com/junglebased)) who got tired of a Telegram bot saying "5 downloads a day".
 
+
+## Content Factory skills (one piece = one folder, see `docs/CF-PIECE-CONTRACT.md`)
+`/cf-brief` → `/cf-source-gate` → `/visual-index` (index + select + series look) → `/cf-copy` → `/cf-design` → `/cf-caption-cta` → `/cf-qa` → `/cf-publish-pack`.
+Shared rules (line breaks, one Claude Design canvas with Swipe view, one grade per piece): `docs/CF-PRODUCTION-RULES.md`. `cf-qa` and `cf-publish-pack` ship scripts; the others are method skills that build on `/formula`, `/transcribe` and your brand kit.
+
 ## What a Format DNA report looks like
 
 From a real run on 26 saved posts:
