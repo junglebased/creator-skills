@@ -6,6 +6,7 @@ Four Claude skills that turn the posts you save into a content system.
 |---|---|
 | **`/dl`** | Downloads any link (Instagram reels, carousels, stories, **your saved collections**, TikTok, YouTube, X, Vimeo, Pinterest) into a folder, with the caption next to it. Free, no daily caps, full quality. |
 | **`/formula`** | Give it an account, a saved collection or a list of posts. It downloads everything, **looks at every post** (cover, slides, video frames, transcript, caption, metrics) and writes a **Format DNA** report: hook bank, viral elements with lift scores, design system, caption formula, CTA bank, format templates. Then give it an idea and it makes it **in that format with your brand kit**, designed in Claude Design. |
+| **`/brand-identity`** | Builds one coherent brand for a person, studio or client: discovery from existing files, positioning + archetype, voice and messaging, visual identity (palette, type, logo brief), then an A4 brand book (HTML + PDF) and a `brand-kit.md` that `/formula` reads. |
 | **`/transcribe`** | Free local transcription on Apple Silicon (Whisper large-v3-turbo via MLX). Text, timecoded, SRT/VTT, paper-edit Markdown. |
 | **`/visual-index`** | Index every photo and video frame of a shoot (scene-detected frame grabs, contact sheets), tag each still (shot, topic, light, cinematic quality 1–5, crop fit, text-safe area), then pick visuals per slide with no-repeat + diversity rules and a used-in ledger. |
 
