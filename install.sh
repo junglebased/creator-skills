@@ -5,7 +5,7 @@ SRC="$(cd "$(dirname "$0")" && pwd)/skills"
 DST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 mkdir -p "$DST"
 
-for s in dl formula transcribe visual-index cf-brief cf-source-gate cf-copy cf-design cf-caption-cta cf-qa cf-publish-pack; do
+for s in dl formula transcribe visual-index cf-brief cf-source-gate cf-copy cf-design cf-caption-cta cf-qa cf-publish-pack brand-identity; do
   mkdir -p "$DST/$s"
   # copy everything except brand kits the user already has
   rsync -a --exclude 'brands/*.md' "$SRC/$s/" "$DST/$s/"
@@ -21,5 +21,5 @@ fi
 
 command -v ffmpeg >/dev/null || echo "!! ffmpeg not found: brew install ffmpeg (needed for frames, sheets, merging)"
 command -v uv >/dev/null || echo "!! uv not found (only needed for /transcribe): brew install uv"
-echo "Installed: /dl /formula /transcribe /visual-index + Content Factory cf-* -> $DST"
+echo "Installed: /dl /formula /transcribe /visual-index /brand-identity + Content Factory cf-* -> $DST"
 echo "Next: create your brand kit -> cp $DST/formula/brands/_template.md $DST/formula/brands/<brand>.md"
