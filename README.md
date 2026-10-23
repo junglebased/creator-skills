@@ -8,6 +8,10 @@ Three Claude skills that turn the posts you save into a content system.
 | **`/formula`** | Give it an account, a saved collection or a list of posts. It downloads everything, **looks at every post** (cover, slides, video frames, transcript, caption, metrics) and writes a **Format DNA** report: hook bank, viral elements with lift scores, design system, caption formula, CTA bank, format templates. Then give it an idea and it makes it **in that format with your brand kit**, designed in Claude Design. |
 | **`/transcribe`** | Free local transcription on Apple Silicon (Whisper large-v3-turbo via MLX). Text, timecoded, SRT/VTT, paper-edit Markdown. |
 
+## YouTube skills (`/yt-*`)
+
+Eleven skills vendored from [Jakeschincariol/youtube-agent-skill](https://github.com/Jakeschincariol/youtube-agent-skill) (MIT, license in `skills/LICENSE-youtube-agent-skill.txt`), unmodified: `/yt-script`, `/yt-package`, `/yt-edit`, `/yt-comment`, `/yt-plan`, `/yt-viral`, `/yt-retention`, `/yt-shorts`, `/yt-seo`, `/yt-chapters`, `/yt-audit`. Python 3 only, no API keys. They read `~/.claude/youtube/voice.md`; `install.sh` drops a template there. They write copy; they never publish.
+
 Built by a documentary filmmaker ([@junglebased](https://instagram.com/junglebased)) who got tired of a Telegram bot saying "5 downloads a day".
 
 ## What a Format DNA report looks like
