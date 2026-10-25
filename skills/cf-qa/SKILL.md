@@ -27,6 +27,7 @@ python3 <skill>/scripts/cfqa.py "<piece folder>" \
 | caption | hashtags > max, emoji > max, banned word, placeholder | >1 em dash, `!` |
 | exports | wrong pixel size, > 20 slides | missing exports, fewer PNGs than still slides |
 | visuals | id not in index, `consent: no` (incl. brand/cigarette/alcohol), used in another campaign, same `dup_group` twice | `consent: check`, risk words in notes, quality < 3, < 3 shot types, 3 same shot types in a row, > 40 % from one source, cover < q5 |
+| hook / title | none (WARN only) | hook score < 3/4 (slide 1: number or question, <= 12 words, no greeting opener, not ALL CAPS); caption first line > 90 chars, ALL CAPS, > 1 `!`/`?`, clickbait phrase |
 | R3 look | look file missing | no look set, no compare grid |
 
 ## After the run
