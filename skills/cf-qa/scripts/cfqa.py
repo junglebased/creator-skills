@@ -158,6 +158,17 @@ def main():
     if slides and not any(r[1].startswith('S') and r[0] != 'PASS' for r in R.rows):
         R.add('PASS', 'R1 text', f'{len(slides)} slides within {a.max_lines} lines, {ch_h}/{ch_b} chars')
 
+    # ---- hook score + title lint (WARN only; rules from the 20261019 sources review)
+    hook = next((s for s in slides if s.get('n') in (1, '1')), slides[0] if slides else None)
+    if hook:
+        ht = ' '.join(lines_of(hook, 'headline')).strip()
+        hs = [(bool(re.search(r'\d|\?', ht)), 'number or question'),
+              (len(ht.split()) <= 12, '<= 12 words'),
+              (not re.match(r'(?i)(merhaba|selam|bugün|hello|hi|today|in this)\b', ht), 'no greeting/throat-clearing opener'),
+              (not ht.isupper() or len(ht) < 4, 'not ALL CAPS')]
+        miss = [n for ok, n in hs if not ok]
+        score = sum(ok for ok, _ in hs)
+        R.add('PASS' if score >= 3 else 'WARN', 'hook score', f'{score}/4' + (f', missing: {", ".join(miss)}' if miss else ''))
     # ---- CTA keyword consistency (slide = caption = ManyChat)
     cap_p = None
     for pat in (f'{code}.caption.md', '*.caption.md'):
@@ -181,6 +192,14 @@ def main():
             R.add('WARN', 'ManyChat trigger', 'not stated: confirm in ManyChat before publishing')
     elif cta_slides:
         R.add('FAIL', 'cta_keyword', 'CTA slide but no cta_keyword in slides.json')
+
+    if caption:
+        first = next((l.strip('# ').strip() for l in caption.splitlines() if l.strip()), '')
+        tl = [m for ok, m in ((len(first) <= 90, f'first line {len(first)} > 90 chars'),
+                              (not (first.isupper() and len(first) > 6), 'first line ALL CAPS'),
+                              (len(re.findall(r'[!?]', first)) <= 1, 'more than one ! or ?'),
+                              (not re.search(r'(?i)you won.t believe|inanamayacaksın|şok|shocking', first), 'clickbait phrase')) if not ok]
+        R.add('WARN' if tl else 'PASS', 'title lint', '; '.join(tl) or 'caption first line ok')
 
     # ---- caption hygiene
     if caption:
