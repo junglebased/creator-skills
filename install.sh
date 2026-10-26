@@ -5,7 +5,12 @@ SRC="$(cd "$(dirname "$0")" && pwd)/skills"
 DST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 mkdir -p "$DST"
 
-for s in dl formula transcribe; do
+# YouTube skills (MIT, github.com/Jakeschincariol/youtube-agent-skill): voice file they read; never overwrite yours
+YT_SKILLS="yt-script yt-package yt-edit yt-comment yt-plan yt-viral yt-retention yt-shorts yt-seo yt-chapters yt-audit"
+mkdir -p "$HOME/.claude/youtube"
+cp -n "$SRC/yt-voice-template/voice.md" "$HOME/.claude/youtube/voice.md"
+
+for s in dl formula transcribe $YT_SKILLS; do
   mkdir -p "$DST/$s"
   # copy everything except brand kits the user already has
   rsync -a --exclude 'brands/*.md' "$SRC/$s/" "$DST/$s/"
@@ -22,4 +27,5 @@ fi
 command -v ffmpeg >/dev/null || echo "!! ffmpeg not found: brew install ffmpeg (needed for frames, sheets, merging)"
 command -v uv >/dev/null || echo "!! uv not found (only needed for /transcribe): brew install uv"
 echo "Installed: /dl /formula /transcribe -> $DST"
+echo "Installed: $(echo "$YT_SKILLS" | sed 's/yt-/\/yt-/g') (fill ~/.claude/youtube/voice.md first)"
 echo "Next: create your brand kit -> cp $DST/formula/brands/_template.md $DST/formula/brands/<brand>.md"
