@@ -67,6 +67,15 @@ Every analysis is saved, so models pile up into a library (`/formula library`) a
 - Small samples give direction, not proof. The report says so.
 - Whisper hallucinates on music-only videos; `/formula` filters that out.
 
+## YouTube skills (`/yt-*`)
+Eleven skills for the YouTube workflow, vendored unmodified from [Jakeschincariol/youtube-agent-skill](https://github.com/Jakeschincariol/youtube-agent-skill) (MIT, license in `skills/LICENSE-youtube-agent-skill.txt`; pinned at commit `a2feb21`):
+
+`/yt-plan` `/yt-script` `/yt-package` `/yt-edit` `/yt-retention` `/yt-chapters` `/yt-seo` `/yt-shorts` `/yt-viral` `/yt-comment` `/yt-audit`
+
+- They **do not publish or upload anything**. They only produce text (scripts, titles, chapters, plans) and run small stdlib-only Python helpers on local files. No network calls, no API keys.
+- They read your voice from `~/.claude/youtube/voice.md`. `install.sh` copies the template (`skills/yt-voice-template/voice.md`) there once and never overwrites it. Fill it in before first use.
+- `yt-chapters` and `yt-viral` load files from `yt-edit` and `yt-script`, so install all eleven together (the script does).
+
 ## Use responsibly
 Download for reference and analysis. Don't repost other people's work. Respect each platform's terms and creators' rights; `/formula` abstracts hooks into templates instead of copying them.
 
