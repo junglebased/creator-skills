@@ -27,6 +27,19 @@ python3 -I tr/hookscore_tr.py --selftest             # gold_tr.txt çiftleri
 - `KALIP` yapay zeka kalıpları ve belirsiz yeşil iddialar (GreenSHOUTING).
 - `SELF` kendini tanıtan ya da "bu videoda" ile açan hook.
 
+## Kalibrasyon (29 Eki 2026)
+
+`calibrate.py`: yt-dlp ile çekilmiş Türkçe videoların ilk 15 saniyelik otomatik altyazısını skorlar, izlenmeyle kanal içi yüzdelik üzerinden karşılaştırır.
+Örneklem: @regenerative_stories'in takip ettiği hesaplardan 12 Türkçe kanal, 119 video (çoğu STK / çiftlik / kurum; YouTube 429 verdi, kanal başına 20 hedeflenmişti).
+
+- Skor ile kanal-içi izlenme yüzdeliği: Spearman **+0.22** (zayıf ama pozitif). Üst üçte bir 34.0, alt üçte bir 32.3 ortalama.
+- Özellik bazında: STAKES +0.12, BREVITY +0.15, SPECIFICITY +0.08, CURIOSITY 0.00, ADDRESS -0.08. Yani ADDRESS ve CURIOSITY şu veride izlenmeyi ayırt etmiyor.
+- Gerçek açılışlar p50 34, p90 40, max 47 puan aldı. Upstream'in 72/55 bantları Türkçede hiç görülmedi, bu yüzden bantlar geçici olarak **GÜÇLÜ ≥50, İDARE EDER 40-49, ZAYIF <40** yapıldı.
+- Örneklemin açılışları ağırlıkla "Merhaba…" ve webinar girişleri. En çok izlenen açılış (667 bin) "Merhaba, ben X. 51 yaşındayım. Üç çocuk annesiyim…" tanıklığıydı. Bu yüzden `SELF` uyarısı rakamlı kişisel açılışta susar ve yeni **Tanıklık** formülü eklendi.
+
+Bu bir sağlama, ayar değil. Ağırlıkları bu veriye göre oynatma; önce seçilmiş (iyi hook'lu) kanallardan daha büyük, ayrı bir örneklem lazım.
+Otomatik altyazıda noktalama ve büyük harf yok; `?`, `ADDRESS` ve özel isim sinyalleri bu yüzden gerçek açılışlarda eksik ölçülür.
+
 ## Sınırlar
 
 Ağırlıklar elle verildi; Türkçe izlenme verisiyle ayarlanmadı. `gold_tr.txt` elle yazılmış çiftlerdir, `--selftest` yalnızca

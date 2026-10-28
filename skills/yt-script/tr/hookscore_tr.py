@@ -147,8 +147,10 @@ def norm_num(s): return re.sub(r"[.,\s]", "", s)
 def warnings(t, facts):
     out = []
     low = tl(t)
-    if SELF.search(t):
-        out.append("SELF     açılış kendini tanıtıyor / özetliyor; izleyicinin bedeliyle aç")
+    # calibration sample (calibrate.py): the most-watched opening was "Merhaba, ben X. 51 yaşındayım..." -
+    # a self-intro that carries a concrete number is a testimony, not the empty pitch; only warn without one
+    if SELF.search(t) and not (re.match(r"^\W*(merhaba|selam)?\W*ben\b", tl(t)) and re.search(r"\d", " ".join(t.split()[:14]))):
+        out.append("SELF     açılış kendini tanıtıyor / özetliyor; izleyicinin bedeliyle aç (somut bir rakamla hikâye açıyorsan sorun yok)")
     for m in AI_TELL.finditer(low):
         out.append(f"KALIP    yapay zeka kalıbı: '{m.group(0)}'")
     for m in GREEN.finditer(low):
@@ -176,7 +178,11 @@ def score(t):
     name, hits = classify(t)
     return parts, verdict, name, hits
 
-def band(v): return "GÜÇLÜ" if v >= 72 else "İDARE EDER" if v >= 55 else "ZAYIF"
+# PROVISIONAL bands (29 Oct 2026). Upstream's 72/55 were never reachable in Turkish: 119 real openings
+# scored p50 34, p90 40, max 47 (calibrate.py); hand-written strong hooks land 46-54. So: >=50 strong,
+# 40-49 workable (above the p90 of real openings), <40 weak. Re-fit when there is a larger, curated sample.
+BANDS = (50, 40)
+def band(v): return "GÜÇLÜ" if v >= BANDS[0] else "İDARE EDER" if v >= BANDS[1] else "ZAYIF"
 
 def report(r):
     t = r["hook"]
