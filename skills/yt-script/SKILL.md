@@ -19,6 +19,9 @@ python3 hookscore.py hooks.txt              # rank your hook options
 python3 hookscore.py --hook "one line"      # score a single one
 ```
 
+**Turkish hooks:** use `tr/hookscore_tr.py` and `tr/hooks_tr.json` (see `tr/README.md`) instead of the two
+files above. The English scorer cannot read Turkish suffixes.
+
 ## Before you write
 
 1. Read `~/.claude/youtube/voice.md` if it exists. That is the user's voice profile: how they talk
